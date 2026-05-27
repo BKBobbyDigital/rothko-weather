@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Rothko Room</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'Edict Display';
+      src: url('fonts/EdictDisplayTrial-Light.otf') format('opentype');
+      font-weight: 300; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Edict Display';
+      src: url('fonts/EdictDisplayTrial-Regular.otf') format('opentype');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Edict Display';
+      src: url('fonts/EdictDisplayTrial-RegularItalic.otf') format('opentype');
+      font-weight: 400; font-style: italic; font-display: swap;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      /* Gallery wall — warm museum cream, faintly aged. */
+      --wall: #ece5d3;
+      --wall-shade: #d8cfb8;
+      --wall-deep:  #b8ab8c;
+      --ink:        #1c1a17;
+      --ink-soft:   #3d3934;
+      --ink-mute:   #6f6a60;
+      --ink-faint:  #9a9388;
+      --rule:       #b8ad95;
+      --rule-soft:  #cdc3a8;
+      --label-card: #f4eedb;
+      --label-edge: #c4b896;
+      --highlight:  #ffffff;
+    }
+
+    html { background: var(--wall); height: 100%; }
+    body {
+      width: 100%;
+      min-height: var(--app-h, 100svh);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* The wall itself — uneven cream wash with a slow vignette toward the floor,
+       and a faint paper-grain via stacked radial gradients. */
+    #wall {
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 120% 80% at 50% 18%, rgba(255,250,235,0.55) 0%, transparent 60%),
+        radial-gradient(ellipse 140% 100% at 50% 100%, rgba(110,95,65,0.18) 0%, transparent 55%),
+        linear-gradient(180deg, var(--wall) 0%, var(--wall-shade) 100%);
+      z-index: 0;
+      pointer-events: none;
+    }
+    /* Subtle paper grain — purely decorative, light. */
+    #wall::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        radial-gradient(rgba(80,60,30,0.025) 1px, transparent 1px),
+        radial-gradient(rgba(40,30,15,0.018) 1px, transparent 1px);
+      background-size: 3px 3px, 7px 7px;
+      background-position: 0 0, 1px 2px;
+      opacity: 0.7;
+      mix-blend-mode: multiply;
+    }
+    /* Faint floor line — suggests the room has a baseboard. */
+    #wall::before {
+      content: '';
+      position: absolute; left: 0; right: 0; bottom: 0;
+      height: 60px;
+      background: linear-gradient(180deg, transparent 0%, rgba(90,70,40,0.10) 100%);
+    }
+
+    /* ── Wordmark at top center ───────────────────────────── */
+    #wordmark {
+      position: fixed;
+      top: 1.4rem; left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 1.4s ease;
+    }
+    body.app-ready #wordmark { opacity: 1; }
+    #wordmark .wm-eyebrow {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.5rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      margin-bottom: 0.18rem;
+    }
+    #wordmark .wm-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 1.05rem;
+      color: var(--ink-soft);
+      letter-spacing: 0.01em;
+    }
+
+    /* ── Stage ────────────────────────────────────────────── */
+    #stage {
+      position: relative;
+      z-index: 1;
+      min-height: var(--app-h, 100svh);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(5rem, 11vh, 8rem) clamp(1.5rem, 6vw, 4rem) clamp(2rem, 6vh, 4rem);
+      gap: clamp(1.5rem, 3.5vh, 3rem);
+    }
+
+    /* Painting hangs on the wall. Real shadow, hairline frame line. */
+    #painting-frame {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      max-width: min(56vw, 560px);
+      max-height: 62vh;
+      transition: opacity 1.4s ease;
+    }
+    #painting {
+      display: block;
+      width: auto; height: auto;
+      max-width: 100%;
+      max-height: 62vh;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 1.6s ease, transform 1.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+      /* Museum lighting: a soft top-lit drop shadow, a thin dark rule
+         (the painting's own edge against the wall), and a barely-there
+         second outer shadow to seat it. */
+      box-shadow:
+        0 0 0 1px rgba(28, 22, 12, 0.55),
+        0 14px 30px -8px rgba(50, 35, 15, 0.30),
+        0 38px 60px -20px rgba(50, 35, 15, 0.22);
+      cursor: pointer;
+    }
+    #painting.loaded {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #loader {
+      position: absolute;
+      inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    #loader.hidden { opacity: 0; }
+    #loader-pulse {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--ink-faint);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.2; transform: scale(0.85); }
+      50%      { opacity: 0.7; transform: scale(1.25); }
+    }
+
+    /* ── Museum label below the painting ──────────────────── */
+    #label {
+      position: relative;
+      width: min(420px, 86vw);
+      background: var(--label-card);
+      border: 1px solid var(--label-edge);
+      padding: 1.15rem 1.4rem 1.1rem;
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.55) inset,
+        0 2px 4px rgba(80,60,30,0.08),
+        0 10px 18px -10px rgba(80,60,30,0.18);
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 1.4s ease 0.4s, transform 1.4s ease 0.4s;
+      cursor: pointer;
+      font-feature-settings: "kern" 1, "liga" 1;
+    }
+    #label.show { opacity: 1; transform: translateY(0); }
+    #label:hover {
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.6) inset,
+        0 2px 4px rgba(80,60,30,0.10),
+        0 14px 22px -10px rgba(80,60,30,0.22);
+    }
+    /* The little nail head above the label (museum mount). */
+    #label::before {
+      content: '';
+      position: absolute;
+      top: -22px; left: 50%;
+      transform: translateX(-50%);
+      width: 4px; height: 4px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #8e7a4f 0%, #4a3a1c 80%);
+      box-shadow: 0 1px 2px rgba(40,28,10,0.4);
+      opacity: 0.55;
+    }
+    .lb-row1 {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      margin-bottom: 0.55rem;
+    }
+    .lb-artist {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 500;
+      font-size: 1.05rem;
+      color: var(--ink);
+      letter-spacing: 0.005em;
+      margin-bottom: 0.05rem;
+    }
+    .lb-dates {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.66rem;
+      color: var(--ink-faint);
+      letter-spacing: 0.06em;
+      margin-bottom: 0.7rem;
+    }
+    .lb-rule {
+      height: 1px;
+      background: var(--rule-soft);
+      margin: 0.45rem 0 0.7rem;
+    }
+    .lb-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 1.3rem;
+      line-height: 1.2;
+      color: var(--ink);
+      margin-bottom: 0.15rem;
+    }
+    .lb-year {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      color: var(--ink-mute);
+      letter-spacing: 0.04em;
+    }
+    .lb-why {
+      margin-top: 0.85rem;
+      padding-top: 0.7rem;
+      border-top: 1px solid var(--rule-soft);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      color: var(--ink-soft);
+    }
+    .lb-more {
+      margin-top: 0.7rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.52rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      text-align: right;
+    }
+
+    /* ── Wall placard (top-left) — printed conditions card ──── */
+    #placard {
+      position: fixed;
+      top: 1.4rem;
+      left: 1.4rem;
+      width: 235px;
+      background: var(--label-card);
+      border: 1px solid var(--label-edge);
+      padding: 1rem 1.05rem 0.95rem;
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.5) inset,
+        0 6px 14px -6px rgba(80,60,30,0.18);
+      z-index: 25;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 1s ease, transform 1s ease;
+    }
+    body.app-ready #placard { opacity: 1; transform: translateY(0); }
+
+    .pc-eyebrow {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.5rem;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 0.45rem;
+    }
+    .pc-loc {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.0rem;
+      color: var(--ink);
+      letter-spacing: 0.005em;
+      line-height: 1.2;
+      margin-bottom: 0.85rem;
+    }
+    .pc-rule { height: 1px; background: var(--rule-soft); margin: 0.55rem 0; }
+
+    .pc-line {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 0.6rem;
+      padding: 0.18rem 0;
+    }
+    .pc-line .pc-key {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.54rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .pc-line .pc-val {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.92rem;
+      color: var(--ink-soft);
+      letter-spacing: 0.005em;
+      text-align: right;
+      font-feature-settings: "tnum" 1;
+    }
+    .pc-line .pc-val em {
+      font-style: italic;
+      color: var(--ink);
+    }
+
+    /* C/F toggle — printed pill, no glass. */
+    #unit-toggle {
+      display: inline-flex; align-items: baseline;
+      padding: 0.06rem 0.32rem;
+      background: transparent;
+      border: 1px solid var(--rule);
+      border-radius: 999px;
+      color: var(--ink-faint);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.54rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      margin-left: 0.45rem;
+      transition: border-color 0.18s, color 0.18s;
+      vertical-align: middle;
+    }
+    #unit-toggle:hover { border-color: var(--ink-soft); }
+    #unit-toggle .u { padding: 0 0.08rem; transition: color 0.18s; }
+    #unit-toggle .u-divider { color: var(--ink-faint); padding: 0 0.05rem; }
+    body[data-unit="C"] #unit-toggle .u-c { color: var(--ink); }
+    body[data-unit="F"] #unit-toggle .u-f { color: var(--ink); }
+
+    /* Mood swatch row */
+    .pc-mood-row {
+      display: flex; align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.1rem;
+    }
+    .pc-swatches { display: flex; gap: 0.18rem; }
+    .pc-swatch {
+      width: 11px; height: 11px;
+      border: 1px solid rgba(40,28,10,0.25);
+    }
+    .pc-mood-text {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      font-size: 0.82rem;
+      color: var(--ink-soft);
+    }
+
+    /* ── Attendant card (top-right) — search, locate, another ── */
+    #attendant {
+      position: fixed;
+      top: 1.4rem;
+      right: 1.4rem;
+      width: 235px;
+      background: var(--label-card);
+      border: 1px solid var(--label-edge);
+      padding: 1rem 1.05rem 0.95rem;
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.5) inset,
+        0 6px 14px -6px rgba(80,60,30,0.18);
+      z-index: 25;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 1s ease 0.15s, transform 1s ease 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+    body.app-ready #attendant { opacity: 1; transform: translateY(0); }
+
+    .at-section .at-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.5rem;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 0.4rem;
+    }
+    .city-search-wrap { position: relative; }
+    #city-input {
+      width: 100%;
+      padding: 0.42rem 0.55rem;
+      background: rgba(255, 250, 235, 0.6);
+      border: 1px solid var(--rule);
+      color: var(--ink);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.92rem;
+      letter-spacing: 0.005em;
+      outline: none;
+      transition: border-color 0.18s, background 0.18s;
+    }
+    #city-input::placeholder {
+      color: var(--ink-faint);
+      font-style: italic;
+    }
+    #city-input:focus {
+      border-color: var(--ink-soft);
+      background: rgba(255, 250, 235, 0.85);
+    }
+    #city-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 3px); left: 0; right: 0;
+      list-style: none;
+      background: var(--label-card);
+      border: 1px solid var(--label-edge);
+      overflow: hidden;
+      z-index: 50;
+      box-shadow: 0 8px 16px rgba(80,60,30,0.18);
+    }
+    #city-dropdown.open { display: block; }
+    #city-dropdown li {
+      padding: 0.45rem 0.65rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.88rem;
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: background 0.15s;
+      border-bottom: 1px solid var(--rule-soft);
+    }
+    #city-dropdown li:last-child { border-bottom: none; }
+    #city-dropdown li:hover { background: rgba(180,150,90,0.12); }
+    #city-dropdown .drop-sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.56rem;
+      letter-spacing: 0.08em;
+      color: var(--ink-faint);
+      margin-top: 0.1rem;
+      text-transform: uppercase;
+    }
+
+    /* Buttons — text-only museum-attendant style */
+    .at-btn {
+      width: 100%;
+      padding: 0.5rem 0.6rem;
+      background: transparent;
+      border: 1px solid var(--rule);
+      color: var(--ink-soft);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.56rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.45rem;
+    }
+    .at-btn:hover {
+      background: rgba(180,150,90,0.12);
+      border-color: var(--ink-soft);
+      color: var(--ink);
+    }
+    .at-btn svg { opacity: 0.55; }
+
+    .at-rule { height: 1px; background: var(--rule-soft); }
+
+    /* City list (visiting hours of other cities) */
+    .city-list {
+      list-style: none;
+      max-height: 200px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--rule) transparent;
+    }
+    .city-list::-webkit-scrollbar { width: 3px; }
+    .city-list::-webkit-scrollbar-thumb { background: var(--rule); }
+    .city-list li {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.28rem 0.4rem;
+      cursor: pointer;
+      border-bottom: 1px dotted var(--rule-soft);
+      transition: background 0.15s;
+    }
+    .city-list li:hover { background: rgba(180,150,90,0.10); }
+    .city-list li.active { background: rgba(180,150,90,0.18); }
+    .city-list .ct-name {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 0.85rem;
+      color: var(--ink-soft);
+    }
+    .city-list li.active .ct-name { color: var(--ink); }
+    .city-list .ct-time {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.6rem;
+      color: var(--ink-faint);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Plaque overlay — expanded museum label modal ──────── */
+    #plaque-overlay {
+      position: fixed; inset: 0;
+      background: rgba(40, 30, 12, 0.42);
+      backdrop-filter: blur(4px) saturate(1.1);
+      -webkit-backdrop-filter: blur(4px) saturate(1.1);
+      z-index: 700;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem 1rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    #plaque-overlay.open { opacity: 1; pointer-events: all; }
+    #plaque {
+      width: 100%;
+      max-width: 540px;
+      background: var(--label-card);
+      border: 1px solid var(--label-edge);
+      padding: 2.4rem 2.2rem 2.2rem;
+      position: relative;
+      transform: translateY(8px);
+      transition: transform 0.4s cubic-bezier(0.2,0.7,0.2,1);
+      max-height: 88vh;
+      overflow-y: auto;
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.6) inset,
+        0 20px 50px rgba(60,40,15,0.35);
+    }
+    #plaque-overlay.open #plaque { transform: translateY(0); }
+    #plaque-close {
+      position: absolute;
+      top: 0.9rem; right: 0.9rem;
+      width: 28px; height: 28px;
+      border: 1px solid var(--rule);
+      background: transparent;
+      color: var(--ink-mute);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #plaque-close:hover { background: rgba(180,150,90,0.15); color: var(--ink); }
+
+    .pl-kicker {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.56rem;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 0.7rem;
+    }
+    .pl-artist {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 0.1rem;
+    }
+    .pl-dates {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.66rem;
+      color: var(--ink-faint);
+      letter-spacing: 0.1em;
+      margin-bottom: 1.2rem;
+      text-transform: uppercase;
+    }
+    .pl-rule { height: 1px; background: var(--rule); margin: 0.4rem 0 1.2rem; }
+    .pl-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      font-size: 1.75rem;
+      color: var(--ink);
+      line-height: 1.2;
+      margin-bottom: 0.25rem;
+    }
+    .pl-year {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72rem;
+      color: var(--ink-mute);
+      letter-spacing: 0.06em;
+      margin-bottom: 1.3rem;
+    }
+    .pl-section { margin-bottom: 1.3rem; }
+    .pl-section:last-of-type { margin-bottom: 0; }
+    .pl-section-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.54rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 0.55rem;
+    }
+    .pl-prose {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.0rem;
+      color: var(--ink-soft);
+      line-height: 1.6;
+    }
+    .pl-prose + .pl-prose { margin-top: 0.7rem; }
+    .pl-swatches { display: flex; gap: 0.35rem; margin-bottom: 0.4rem; }
+    .pl-swatch {
+      width: 34px; height: 34px;
+      border: 1px solid rgba(40,28,10,0.25);
+    }
+    .pl-links a {
+      display: inline-block;
+      margin-right: 1rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .pl-links a:hover { color: var(--ink); border-color: var(--ink-soft); }
+
+    /* Toast — printed-card style */
+    #toast {
+      position: fixed;
+      top: 4.2rem; left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      z-index: 40;
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.5rem 0.95rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      background: var(--label-card);
+      border: 1px solid var(--label-edge);
+      box-shadow: 0 8px 20px rgba(80,60,30,0.2);
+      opacity: 0; pointer-events: none;
+      cursor: pointer;
+      max-width: calc(100vw - 1.6rem);
+      transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.22,0.61,0.36,1);
+    }
+    #toast.show {
+      opacity: 1; pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+    }
+    #toast .toast-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ── Mobile ──────────────────────────────────────────── */
+    @media (max-width: 860px) {
+      #placard, #attendant {
+        position: static;
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+      }
+      #stage {
+        padding: 5rem 1rem 2rem;
+        gap: 1.4rem;
+      }
+      #painting-frame { max-width: 86vw; max-height: 52vh; }
+      #painting { max-height: 52vh; }
+      #wordmark { top: 0.9rem; }
+      /* Reflow so placard/attendant appear above and below the painting on
+         narrow screens. Painting first, then label, then chrome. */
+      body.app-ready #placard { order: 99; margin-top: 1rem; }
+      body.app-ready #attendant { order: 100; margin-bottom: 1rem; }
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: var(--app-h, 100svh);
+      }
+      #stage { order: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="wall"></div>
+
+<div id="wordmark">
+  <div class="wm-eyebrow">Visiting today</div>
+  <div class="wm-title">The Rothko Room</div>
+</div>
+
+<!-- Left: printed conditions placard -->
+<aside id="placard" aria-label="Today's conditions">
+  <div class="pc-eyebrow">Outside the gallery</div>
+  <div class="pc-loc" id="pc-loc">Locating…</div>
+
+  <div class="pc-line">
+    <span class="pc-key">Weather</span>
+    <span class="pc-val"><em id="pc-cond">—</em></span>
+  </div>
+  <div class="pc-line">
+    <span class="pc-key">Temperature</span>
+    <span class="pc-val">
+      <span id="pc-temp">—°</span>
+      <button id="unit-toggle" onclick="toggleUnit()" type="button" aria-label="Switch between Celsius and Fahrenheit">
+        <span class="u u-c">°C</span><span class="u-divider">/</span><span class="u u-f">°F</span>
+      </button>
+    </span>
+  </div>
+  <div class="pc-line">
+    <span class="pc-key">Hour</span>
+    <span class="pc-val"><em id="pc-bucket">—</em> · <span id="pc-clock">—</span></span>
+  </div>
+
+  <div class="pc-rule"></div>
+
+  <div class="pc-eyebrow" style="margin-bottom: 0.35rem;">Color register</div>
+  <div class="pc-mood-row">
+    <div class="pc-swatches" id="pc-swatches"></div>
+    <div class="pc-mood-text" id="pc-mood">—</div>
+  </div>
+</aside>
+
+<!-- Center: painting + museum label -->
+<main id="stage">
+  <div id="painting-frame">
+    <img id="painting" alt="" onclick="openPlaque()" />
+    <div id="loader"><div id="loader-pulse"></div></div>
+  </div>
+
+  <div id="label" onclick="openPlaque()" role="button" tabindex="0">
+    <div class="lb-row1">Now on view</div>
+    <div class="lb-artist">Mark Rothko</div>
+    <div class="lb-dates">American · 1903–1970</div>
+    <div class="lb-rule"></div>
+    <div class="lb-title" id="lb-title">—</div>
+    <div class="lb-year" id="lb-year">—</div>
+    <div class="lb-why" id="lb-why"></div>
+    <div class="lb-more">Read the plaque →</div>
+  </div>
+</main>
+
+<!-- Right: museum attendant card (search, locate, walk through) -->
+<aside id="attendant" aria-label="Visit controls">
+  <div class="at-section">
+    <div class="at-label">Visit elsewhere</div>
+    <div class="city-search-wrap">
+      <input id="city-input" type="text" placeholder="Search a city…" autocomplete="off" spellcheck="false"/>
+      <ul id="city-dropdown"></ul>
+    </div>
+  </div>
+
+  <button class="at-btn" onclick="requestLocation()">
+    <svg width="10" height="10" viewBox="0 0 11 11" fill="none">
+      <circle cx="5.5" cy="5.5" r="2.2" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M5.5 1v1.4M5.5 8.6V10M1 5.5h1.4M8.6 5.5H10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    Use my location
+  </button>
+
+  <button class="at-btn" onclick="findAnother()" title="Show another Rothko">
+    <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+      <path d="M11.5 2.5v3h-3M2.5 11.5v-3h3M11.5 5.5A4.5 4.5 0 0 0 3 4.2M2.5 8.5A4.5 4.5 0 0 0 11 9.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Another Rothko
+  </button>
+
+  <div class="at-rule"></div>
+
+  <div class="at-section">
+    <div class="at-label">Open hours, elsewhere</div>
+    <ul class="city-list" id="city-list"></ul>
+  </div>
+</aside>
+
+<!-- Toast -->
+<div id="toast" onclick="hideToast()" role="status" aria-live="polite">
+  <span class="toast-text">—</span>
+</div>
+
+<!-- Plaque overlay -->
+<div id="plaque-overlay" onclick="closePlaque(event)">
+  <div id="plaque">
+    <button id="plaque-close" onclick="closePlaque()" aria-label="Close">
+      <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+        <path d="M1 1l7 7M8 1l-7 7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <p class="pl-kicker">Painting</p>
+    <p class="pl-artist">Mark Rothko</p>
+    <p class="pl-dates">American · 1903–1970</p>
+    <div class="pl-rule"></div>
+    <div class="pl-title" id="pl-title"></div>
+    <div class="pl-year" id="pl-year"></div>
+    <div class="pl-section">
+      <div class="pl-section-label">Palette</div>
+      <div class="pl-swatches" id="pl-swatches"></div>
+    </div>
+    <div class="pl-section">
+      <div class="pl-section-label">Why this Rothko, right now</div>
+      <p class="pl-prose" id="pl-why"></p>
+    </div>
+    <div class="pl-section">
+      <div class="pl-section-label">About the painter</div>
+      <p class="pl-prose">Rothko stopped painting things in the late 1940s. What he kept was light, color, and a feeling the work was supposed to give the person standing in front of it — joy, ecstasy, doom, tragedy. He arranged two or three soft-edged rectangles on a field and worked the surface until the colors seemed to hold their own weather inside the canvas.</p>
+      <p class="pl-prose">He asked galleries to hang the paintings low, dim the lights, and let people sit with them. The painting was supposed to do something — not just be looked at.</p>
+    </div>
+    <div class="pl-section" id="pl-links-wrap" style="display:none;">
+      <div class="pl-section-label">Read more</div>
+      <div class="pl-links" id="pl-links"></div>
+    </div>
+  </div>
+</div>
+
+<script src="paintings.js"></script>
+<script>
+// Visible viewport tracking for iOS
+(function trackVisibleViewport() {
+  const set = () => {
+    const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    document.documentElement.style.setProperty('--app-h', h + 'px');
+  };
+  set();
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', set);
+    window.visualViewport.addEventListener('scroll', set);
+  }
+  window.addEventListener('resize', set);
+  window.addEventListener('orientationchange', set);
+})();
+
+(() => {
+  const paintings = window.ROTHKOS || [];
+  let activePainting = null;
+  let activeCtx = null;
+
+  // Images live alongside this file in ./images/. paintings.js encodes paths
+  // as "/images/<slug>.jpg" (absolute, from the original site's root); strip
+  // the leading slash so they resolve relative to wherever this is served.
+  function imageUrl(p) {
+    if (!p || !p.image) return '';
+    if (/^https?:/i.test(p.image)) return p.image;
+    return p.image.replace(/^\//, '');
+  }
+
+  const CITIES = [
+    { name: 'New York',    lat: 40.71,  lon: -74.00,  tz: 'America/New_York',      cc: 'US' },
+    { name: 'London',      lat: 51.51,  lon: -0.13,   tz: 'Europe/London',         cc: 'GB' },
+    { name: 'Paris',       lat: 48.85,  lon: 2.35,    tz: 'Europe/Paris',          cc: 'FR' },
+    { name: 'Berlin',      lat: 52.52,  lon: 13.41,   tz: 'Europe/Berlin',         cc: 'DE' },
+    { name: 'Helsinki',    lat: 60.17,  lon: 24.94,   tz: 'Europe/Helsinki',       cc: 'FI' },
+    { name: 'Reykjavík',   lat: 64.13,  lon: -21.94,  tz: 'Atlantic/Reykjavik',    cc: 'IS' },
+    { name: 'Tokyo',       lat: 35.68,  lon: 139.69,  tz: 'Asia/Tokyo',            cc: 'JP' },
+    { name: 'Singapore',   lat: 1.35,   lon: 103.82,  tz: 'Asia/Singapore',        cc: 'SG' },
+    { name: 'Mumbai',      lat: 19.08,  lon: 72.88,   tz: 'Asia/Kolkata',          cc: 'IN' },
+    { name: 'Dubai',       lat: 25.20,  lon: 55.27,   tz: 'Asia/Dubai',            cc: 'AE' },
+    { name: 'Cairo',       lat: 30.04,  lon: 31.24,   tz: 'Africa/Cairo',          cc: 'EG' },
+    { name: 'Cape Town',   lat: -33.92, lon: 18.42,   tz: 'Africa/Johannesburg',   cc: 'ZA' },
+    { name: 'São Paulo',   lat: -23.55, lon: -46.63,  tz: 'America/Sao_Paulo',     cc: 'BR' },
+    { name: 'Mexico City', lat: 19.43,  lon: -99.13,  tz: 'America/Mexico_City',   cc: 'MX' },
+    { name: 'LA',          lat: 34.05,  lon: -118.24, tz: 'America/Los_Angeles',   cc: 'US' },
+    { name: 'Sydney',      lat: -33.87, lon: 151.21,  tz: 'Australia/Sydney',      cc: 'AU' },
+  ];
+
+  const WMO_LABEL = {
+    0:'Clear sky',1:'Mostly clear',2:'Partly cloudy',3:'Overcast',
+    45:'Fog',48:'Rime fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',
+    61:'Light rain',63:'Rain',65:'Heavy rain',
+    71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow grains',
+    80:'Rain showers',81:'Showers',82:'Heavy showers',
+    85:'Snow showers',86:'Heavy snow showers',
+    95:'Thunderstorm',96:'Thunderstorm',99:'Heavy thunderstorm',
+  };
+
+  // ── Context derivation ─────────────────────────────────────
+  function wmoToTags(c) {
+    if (c===0||c===1) return ['clear'];
+    if (c===2)        return ['partly_cloudy'];
+    if (c===3)        return ['overcast'];
+    if (c>=45&&c<=48) return ['fog'];
+    if (c>=51&&c<=65) return ['rain'];
+    if (c>=71&&c<=77) return ['snow'];
+    if (c>=80&&c<=82) return ['rain'];
+    if (c>=85&&c<=86) return ['snow'];
+    if (c>=95)        return ['storm'];
+    return ['overcast'];
+  }
+  function getSeason(month, lat) {
+    const n=[,'winter','winter','spring','spring','spring','summer','summer','summer','autumn','autumn','autumn','winter'];
+    const s=[,'summer','summer','autumn','autumn','autumn','winter','winter','winter','spring','spring','spring','summer'];
+    return (lat>=0?n:s)[month];
+  }
+  function getTimeBucket(m, sr, ss) {
+    if (sr == null || ss == null) {
+      const h = Math.floor(m / 60);
+      if (h>=5&&h<7)   return 'dawn';
+      if (h>=7&&h<11)  return 'morning';
+      if (h>=11&&h<13) return 'noon';
+      if (h>=13&&h<17) return 'afternoon';
+      if (h>=17&&h<20) return 'dusk';
+      if (h>=20&&h<23) return 'evening';
+      return 'night';
+    }
+    const dayLen = ss - sr;
+    if (m >= sr - 30 && m < sr + 30)  return 'dawn';
+    if (m >= ss - 30 && m < ss + 30)  return 'dusk';
+    if (m >= sr && m < ss) {
+      const frac = (m - sr) / dayLen;
+      if (frac < 0.45) return 'morning';
+      if (frac < 0.55) return 'noon';
+      return 'afternoon';
+    }
+    if (m >= ss + 30 && m < ss + 120) return 'evening';
+    return 'night';
+  }
+  function computeLightLevel(m, sr, ss) {
+    if (sr == null || ss == null) return 'unknown';
+    const gold = 75, twilight = 60;
+    if (m > sr + gold && m < ss - gold)         return 'bright';
+    if (m >= sr - 15 && m <= sr + gold)         return 'golden_dawn';
+    if (m >= ss - gold && m <= ss + 15)         return 'golden_dusk';
+    if (m > ss + 15 && m < ss + 15 + twilight)  return 'twilight';
+    if (m > sr - 15 - twilight && m < sr - 15)  return 'pre_dawn';
+    return 'night';
+  }
+  function tempBand(t) {
+    if (t > 26) return 'hot';
+    if (t > 18) return 'warm';
+    if (t > 10) return 'mild';
+    if (t > 2)  return 'cool';
+    if (t > -6) return 'cold';
+    return 'frigid';
+  }
+
+  // ── Mood / scoring (lifted from upstream — same logic) ────
+  function moodOf(ctx) {
+    const w  = ctx.weather[0];
+    const t  = ctx.time;
+    const tb = tempBand(ctx.temp);
+    const sunny = (w === 'clear' || w === 'partly_cloudy');
+    let ll = ctx.lightLevel;
+    if (!sunny) {
+      if (ll === 'golden_dawn') ll = 'pre_dawn';
+      if (ll === 'golden_dusk') ll = 'twilight';
+    }
+    let brightness;
+    if (ll === 'night')                                          brightness = 'dark';
+    else if (ll === 'twilight' || ll === 'pre_dawn')             brightness = 'dark';
+    else if (ll === 'golden_dawn' || ll === 'golden_dusk')       brightness = 'medium';
+    else if (ll === 'bright' && w === 'overcast')                brightness = 'medium';
+    else if (ll === 'bright' && w === 'fog')                     brightness = 'medium';
+    else if (ll === 'bright' && (w === 'rain' || w === 'storm')) brightness = 'dark';
+    else if (ll === 'bright')                                    brightness = 'luminous';
+    else                                                         brightness = 'medium';
+
+    let temperature;
+    if (w === 'rain' || w === 'storm' || w === 'snow' || w === 'fog') temperature = 'cool';
+    else if (ll === 'night')                                          temperature = 'cool';
+    else if (tb === 'hot' || tb === 'warm')                           temperature = 'warm';
+    else if (w === 'overcast' && tb !== 'hot' && tb !== 'warm')       temperature = 'cool';
+    else if (t === 'dusk' || ll === 'golden_dusk' || ll === 'golden_dawn') temperature = 'warm';
+    else if (tb === 'cold' || tb === 'frigid')                        temperature = 'cool';
+    else                                                              temperature = 'neutral';
+
+    const palette = new Set();
+    if (ll === 'night') {
+      palette.add('black').add('deep_blue').add('wine').add('plum');
+    } else if (ll === 'twilight' || ll === 'pre_dawn') {
+      palette.add('deep_blue').add('plum').add('mulberry').add('slate');
+    } else if (ll === 'golden_dusk') {
+      palette.add('amber').add('rust').add('orange').add('wine').add('mauve');
+    } else if (ll === 'golden_dawn') {
+      palette.add('rose').add('mauve').add('amber').add('cream').add('peach');
+    } else if (ll === 'bright' && sunny) {
+      if (t === 'noon')      palette.add('yellow').add('orange').add('red').add('saffron');
+      else if (t === 'morning') palette.add('yellow').add('cream').add('rose').add('saffron');
+      else                   palette.add('red').add('orange').add('amber').add('rust');
+    } else if (ll !== 'bright') {
+      palette.add('amber').add('rose');
+    }
+    if (w === 'overcast') palette.add('slate').add('grey').add('plum').add('brown');
+    if (w === 'fog')      palette.add('grey').add('slate').add('mauve');
+    if (w === 'rain')     palette.add('deep_blue').add('slate').add('plum').add('black');
+    if (w === 'storm')    palette.add('black').add('maroon').add('wine').add('plum');
+    if (w === 'snow')     palette.add('grey').add('cream').add('slate');
+
+    const mood = new Set();
+    if (ll === 'night')                          ['somber','contemplative','quiet','heavy'].forEach(x=>mood.add(x));
+    if (ll === 'twilight' || ll === 'pre_dawn')  ['contemplative','melancholy','quiet'].forEach(x=>mood.add(x));
+    if (ll === 'golden_dusk')                    ['tender','glowing','melancholy','warm'].forEach(x=>mood.add(x));
+    if (ll === 'golden_dawn')                    ['tender','luminous','soft','warm'].forEach(x=>mood.add(x));
+    if (ll === 'bright' && sunny)                ['radiant','warm','vivid','open'].forEach(x=>mood.add(x));
+    if (w === 'overcast')                        ['somber','quiet','muted'].forEach(x=>mood.add(x));
+    if (w === 'fog')                             ['hushed','muted','contemplative'].forEach(x=>mood.add(x));
+    if (w === 'rain')                            ['somber','melancholy','heavy'].forEach(x=>mood.add(x));
+    if (w === 'storm')                           ['stormy','heavy','restless','somber'].forEach(x=>mood.add(x));
+    if (w === 'snow')                            ['quiet','muted','still'].forEach(x=>mood.add(x));
+    if (w === 'clear' && (tb === 'hot' || tb === 'warm')) ['radiant','vivid','warm'].forEach(x=>mood.add(x));
+
+    return { brightness, temperature, palette, mood, tempBand: tb };
+  }
+
+  const PALETTE_SWATCH = {
+    black:'#0c0c10', grey:'#5a5a62', slate:'#3f4a5a',
+    deep_blue:'#1a2a55', plum:'#2a1530', mulberry:'#3c1c2e',
+    wine:'#4a1424', maroon:'#5a1218', red:'#a8202a',
+    rust:'#9a3a1a', orange:'#d96826', amber:'#d99830',
+    saffron:'#e0b035', yellow:'#e8c850', cream:'#f0d8a8',
+    peach:'#e89a78', rose:'#d06880', mauve:'#7a5468', brown:'#553a2a',
+  };
+
+  function swatchesFor(mood, max=3) {
+    const ORDER = [
+      'black','deep_blue','plum','wine','maroon','slate','grey','mulberry',
+      'brown','rust','red','orange','amber','saffron','yellow','rose','mauve','peach','cream',
+    ];
+    const out = [];
+    for (const k of ORDER) {
+      if (mood.palette.has(k) && PALETTE_SWATCH[k]) out.push(PALETTE_SWATCH[k]);
+      if (out.length >= max) break;
+    }
+    return out;
+  }
+
+  function moodPhrase(mood) {
+    const order = ['stormy','somber','contemplative','melancholy','tender','glowing',
+                   'luminous','radiant','vivid','quiet','hushed','muted','heavy','warm','soft','still','restless','open'];
+    for (const m of order) if (mood.mood.has(m)) return m;
+    return 'quiet';
+  }
+
+  function score(p, ctx) {
+    const m = moodOf(ctx);
+    let s = 0;
+    const ptags = new Set(p.palette || []);
+    for (const tok of m.palette) if (ptags.has(tok)) s += 6;
+    if (p.brightness === m.brightness) s += 8;
+    else if ((p.brightness === 'medium' && m.brightness !== 'medium') ||
+             (m.brightness === 'medium' && p.brightness !== 'medium')) s += 3;
+    else s -= 10;
+    if (p.temperature === m.temperature) s += 6;
+    else if (p.temperature === 'neutral' || m.temperature === 'neutral') s += 1;
+    else s -= 10;
+    const mtags = new Set(p.mood || []);
+    for (const tok of m.mood) if (mtags.has(tok)) s += 3;
+    const bf = p.bestFor || {};
+    if (Array.isArray(bf.times)        && bf.times.includes(ctx.time))             s += 4;
+    if (Array.isArray(bf.weathers)     && bf.weathers.includes(ctx.weather[0]))    s += 4;
+    if (Array.isArray(bf.seasons)      && bf.seasons.includes(ctx.season))         s += 2;
+    if (Array.isArray(bf.lightLevels)  && bf.lightLevels.includes(ctx.lightLevel)) s += 5;
+    if (Array.isArray(bf.tempBands)    && bf.tempBands.includes(m.tempBand))       s += 2;
+    if (loadRecent().includes(paintingKey(p))) s -= 5;
+    return s;
+  }
+
+  function paintingKey(p) { return `${p.title}::${p.year}`; }
+  function loadRecent() {
+    try { return JSON.parse(localStorage.getItem('rothko-recent') || '[]'); } catch(_) { return []; }
+  }
+  function pushRecent(p) {
+    const r = loadRecent();
+    r.unshift(paintingKey(p));
+    while (r.length > 8) r.pop();
+    try { localStorage.setItem('rothko-recent', JSON.stringify(r)); } catch(_) {}
+  }
+
+  // ── Weather ───────────────────────────────────────────────
+  async function fetchWithTimeout(url, ms = 5000) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    try {
+      const r = await fetch(url, { signal: ctrl.signal });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await r.json();
+    } finally {
+      clearTimeout(t);
+    }
+  }
+
+  async function fetchFromOpenMeteo(lat, lon, locationName) {
+    // Free public endpoint. Returns identical shape to the original site's
+    // /api/weather proxy.
+    const params = new URLSearchParams({
+      latitude: String(lat),
+      longitude: String(lon),
+      current: 'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code',
+      daily: 'sunrise,sunset',
+      timezone: 'auto',
+      forecast_days: '1',
+    });
+    const url = `https://api.open-meteo.com/v1/forecast?${params}`;
+    const d = await fetchWithTimeout(url, 8000);
+    const cur = d && d.current;
+    if (!cur || typeof cur.time !== 'string') throw new Error('bad weather response');
+    const timePart = cur.time.split('T')[1] || '00:00';
+    const hour = parseInt(timePart.split(':')[0], 10);
+    const minute = parseInt(timePart.split(':')[1], 10);
+    const month = parseInt(cur.time.split('-')[1], 10);
+    const minutesIntoDay = hour * 60 + minute;
+    const season = getSeason(month, lat);
+    const parseHM = iso => {
+      if (!iso) return null;
+      const t = iso.split('T')[1];
+      if (!t) return null;
+      const [h, m] = t.split(':').map(n => parseInt(n, 10));
+      return h * 60 + m;
+    };
+    const sunriseMin = parseHM(d.daily?.sunrise?.[0]);
+    const sunsetMin  = parseHM(d.daily?.sunset?.[0]);
+    return {
+      lat, lon, locationName,
+      temp: Math.round(cur.temperature_2m),
+      feelsLike: Math.round(cur.apparent_temperature),
+      humidity: Math.round(cur.relative_humidity_2m),
+      windSpeed: Math.round(cur.wind_speed_10m),
+      weatherCode: cur.weather_code,
+      conditionText: WMO_LABEL[cur.weather_code] || 'Unknown',
+      weather: wmoToTags(cur.weather_code),
+      season,
+      time: getTimeBucket(minutesIntoDay, sunriseMin, sunsetMin),
+      hour, minute,
+      sunriseMin, sunsetMin,
+      lightLevel: computeLightLevel(minutesIntoDay, sunriseMin, sunsetMin),
+      source: 'open-meteo',
+    };
+  }
+
+  async function fetchConditions(lat, lon, locationName) {
+    return fetchFromOpenMeteo(lat, lon, locationName);
+  }
+
+  async function fetchCityInfo(lat, lon) {
+    try {
+      const d = await fetchWithTimeout(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`, 3000);
+      const name = d.address?.city || d.address?.town || d.address?.village || d.address?.county;
+      const cc = (d.address?.country_code || '').toUpperCase() || null;
+      if (name) return { name, countryCode: cc };
+    } catch(_) {}
+    try {
+      const d = await fetchWithTimeout(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`, 3000);
+      const name = d.city || d.locality || d.principalSubdivision || 'Your location';
+      const cc = (d.countryCode || '').toUpperCase() || null;
+      return { name, countryCode: cc };
+    } catch(_) {}
+    return { name: 'Your location', countryCode: null };
+  }
+
+  // ── Temperature unit ──────────────────────────────────────
+  const F_COUNTRIES = new Set(['US', 'BS', 'BZ', 'KY', 'LR', 'MM', 'PW']);
+  function defaultUnitFor(ctx) {
+    if (ctx?.countryCode && F_COUNTRIES.has(ctx.countryCode)) return 'F';
+    try {
+      const loc = (navigator.language || '').toUpperCase();
+      if (loc.startsWith('EN-US')) return 'F';
+    } catch(_) {}
+    return 'C';
+  }
+  function getUnit(ctx) {
+    try {
+      const saved = localStorage.getItem('rothko-unit');
+      if (saved === 'F' || saved === 'C') return saved;
+    } catch(_) {}
+    return defaultUnitFor(ctx);
+  }
+  window.setUnit = function (u) {
+    if (u !== 'C' && u !== 'F') return;
+    try { localStorage.setItem('rothko-unit', u); } catch(_) {}
+    document.body.setAttribute('data-unit', u);
+    if (activeCtx) {
+      updatePlacard(activeCtx);
+      buildCityList(activeCtx?.locationName);
+    }
+  };
+  window.toggleUnit = function () {
+    setUnit(getUnit(activeCtx) === 'C' ? 'F' : 'C');
+  };
+  function formatTemp(c, unit) {
+    return unit === 'F' ? Math.round(c * 9 / 5 + 32) : Math.round(c);
+  }
+  function formatClock(hour, minute, unit) {
+    if (unit === 'F') {
+      const h12 = (hour % 12) || 12;
+      const mm = String(minute).padStart(2, '0');
+      return `${h12}:${mm} ${hour < 12 ? 'AM' : 'PM'}`;
+    }
+    return `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
+  }
+  function formatCityTime(tz, unit, now = new Date()) {
+    try {
+      return new Intl.DateTimeFormat('en-US', {
+        timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: unit === 'F',
+      }).format(now);
+    } catch(_) { return '—'; }
+  }
+
+  // ── Toast ─────────────────────────────────────────────────
+  let toastTimer = null;
+  window.showToast = function(text, duration = 9000) {
+    const el = document.getElementById('toast');
+    if (!el) return;
+    el.querySelector('.toast-text').textContent = text;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    if (duration > 0) toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+  };
+  window.hideToast = function() {
+    document.getElementById('toast')?.classList.remove('show');
+    clearTimeout(toastTimer);
+  };
+
+  function synthesizeClockOnlyCtx(cached) {
+    const now = new Date();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const month = now.getMonth() + 1;
+    const lat = (cached && typeof cached.lat === 'number') ? cached.lat : 40.71;
+    const lon = (cached && typeof cached.lon === 'number') ? cached.lon : -74.00;
+    return {
+      lat, lon,
+      locationName: (cached && cached.name) || 'Your location',
+      temp: 14, feelsLike: 14, humidity: 60, windSpeed: 5,
+      weatherCode: 3,
+      conditionText: 'Conditions unavailable',
+      weather: ['overcast'],
+      season: getSeason(month, lat),
+      time: getTimeBucket(hour * 60 + minute, null, null),
+      hour, minute,
+      sunriseMin: null, sunsetMin: null,
+      lightLevel: 'unknown',
+      source: 'clock',
+      countryCode: (cached && cached.countryCode) || null,
+    };
+  }
+
+  // ── Phrasing ──────────────────────────────────────────────
+  const TIME_PHRASE = {
+    dawn: 'first light', morning: 'morning', noon: 'midday',
+    afternoon: 'afternoon', dusk: 'sundown', evening: 'evening', night: 'night',
+  };
+  const WEATHER_PHRASE = {
+    clear: 'clear sky', partly_cloudy: 'broken cloud', overcast: 'low grey ceiling',
+    fog: 'fog', rain: 'rain', snow: 'snow', storm: 'storm',
+  };
+  const MOOD_OPENER = {
+    stormy:        ['Heavy weather','A storm outside'],
+    somber:        ['Somber out','A heavy quiet outside'],
+    contemplative: ['A contemplative hour','The kind of hour you sit with'],
+    melancholy:    ['A quiet melancholy','The day going inward'],
+    tender:        ['A tender light','The light gone soft'],
+    glowing:       ['A glowing hour','The air going gold'],
+    luminous:      ['Soft luminous light','First light arriving'],
+    radiant:       ['Bright open weather','Full sun overhead'],
+    vivid:         ['Vivid open weather','The day at full saturation'],
+    quiet:         ['A quiet hour','A still moment'],
+    hushed:        ['The world gone hushed','Air thick and still'],
+    muted:         ['Muted weather','Everything turned grey'],
+    heavy:         ['A heavy hour','The day with weight'],
+    warm:          ['Warm light','Warm air'],
+    soft:          ['Soft light','The light gone soft'],
+    still:         ['Air still','Nothing moving'],
+    restless:      ['Restless weather','Wind coming up'],
+    open:          ['Open weather','Wide sky'],
+  };
+  const pick1 = arr => arr[Math.floor(Math.random() * arr.length)];
+
+  function buildWhyLine(p, ctx) {
+    const m = moodOf(ctx);
+    const phrase = moodPhrase(m);
+    const opener = pick1(MOOD_OPENER[phrase] || ['Right now']);
+    const sharedPalette = (p.palette || []).filter(t => m.palette.has(t));
+    const sharedMood    = (p.mood    || []).filter(t => m.mood.has(t));
+    let connector;
+    if (sharedMood.length && sharedPalette.length) {
+      connector = `the ${sharedPalette[0].replace('_',' ')} field carries the same ${sharedMood[0]} hour`;
+    } else if (sharedMood.length) {
+      connector = `the painting holds the same ${sharedMood[0]} register`;
+    } else if (sharedPalette.length) {
+      connector = `${sharedPalette[0].replace('_',' ')} the right note for the hour`;
+    } else if (p.brightness === m.brightness) {
+      connector = `the painting sits in the same kind of light`;
+    } else {
+      connector = `a fitting color for it`;
+    }
+    return `${opener} — ${connector}.`;
+  }
+  function buildOutsidePhrase(ctx) {
+    const city = ctx.locationName || 'where you are';
+    const w = WEATHER_PHRASE[ctx.weather[0]] || ctx.weather[0];
+    const t = TIME_PHRASE[ctx.time] || ctx.time;
+    return `${ctx.temp}° in ${city}, ${w}, ${t}.`;
+  }
+
+  // ── Rendering ─────────────────────────────────────────────
+  function updatePlacard(ctx) {
+    const m = moodOf(ctx);
+    const unit = getUnit(ctx);
+    document.body.setAttribute('data-unit', unit);
+    document.getElementById('pc-loc').textContent = ctx.locationName || '—';
+    document.getElementById('pc-cond').textContent = ctx.conditionText || '—';
+    document.getElementById('pc-temp').textContent = `${formatTemp(ctx.temp, unit)}°`;
+    document.getElementById('pc-bucket').textContent = TIME_PHRASE[ctx.time] || ctx.time;
+    document.getElementById('pc-clock').textContent = formatClock(ctx.hour, ctx.minute, unit);
+    document.getElementById('pc-mood').textContent = moodPhrase(m);
+    document.getElementById('pc-swatches').innerHTML =
+      swatchesFor(m, 4).map(c => `<span class="pc-swatch" style="background:${c}"></span>`).join('');
+  }
+
+  function showLoader(on) {
+    document.getElementById('loader').classList.toggle('hidden', !on);
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderPainting(p, ctx) {
+    activePainting = p;
+    activeCtx = ctx;
+    pushRecent(p);
+
+    const img = document.getElementById('painting');
+    const labelEl = document.getElementById('label');
+    img.classList.remove('loaded');
+    labelEl.classList.remove('show');
+
+    const url = imageUrl(p);
+    const probe = new Image();
+    probe.onload = () => {
+      img.src = url;
+      img.alt = `${p.title}${p.year ? ', ' + p.year : ''}`;
+      requestAnimationFrame(() => img.classList.add('loaded'));
+      showLoader(false);
+      paintLabel(p, ctx);
+    };
+    probe.onerror = () => {
+      showLoader(false);
+      walkRanked(+1, true);
+    };
+    probe.src = url;
+  }
+
+  function paintLabel(p, ctx) {
+    const yearStr = p.year != null ? String(p.year) : '';
+    const hasYear = yearStr && String(p.title).includes(yearStr);
+    document.getElementById('lb-title').innerHTML = escapeHtml(p.title);
+    document.getElementById('lb-year').textContent =
+      (!yearStr || hasYear) ? (p.medium || 'Oil on canvas') : `${p.year}${p.medium ? ' · ' + p.medium : ' · Oil on canvas'}`;
+    document.getElementById('lb-why').textContent = buildWhyLine(p, ctx);
+    document.getElementById('label').classList.add('show');
+  }
+
+  let rankedCache = null;
+  let rankedIdx = 0;
+  function refreshRanked(ctx) {
+    rankedCache = paintings
+      .map(p => ({ p, s: score(p, ctx) }))
+      .sort((a,b) => b.s - a.s)
+      .map(x => x.p);
+    rankedIdx = 0;
+  }
+  function walkRanked(dir, silent) {
+    if (!rankedCache) return;
+    rankedIdx = (rankedIdx + dir + rankedCache.length) % rankedCache.length;
+    if (!silent) showLoader(true);
+    renderPainting(rankedCache[rankedIdx], activeCtx);
+  }
+  window.findAnother = function() {
+    if (!activeCtx) return;
+    if (!rankedCache) refreshRanked(activeCtx);
+    walkRanked(+1);
+  };
+
+  // ── Plaque ────────────────────────────────────────────────
+  window.openPlaque = function() {
+    if (!activePainting) return;
+    const p = activePainting;
+    document.getElementById('pl-title').innerHTML = `<em>${escapeHtml(p.title)}</em>`;
+    document.getElementById('pl-year').textContent = `${p.year ?? ''}${p.medium ? ' · ' + p.medium : ''}`.trim();
+    const sw = (p.palette || []).slice(0, 5)
+      .map(k => PALETTE_SWATCH[k] || '#222')
+      .map(c => `<div class="pl-swatch" style="background:${c}"></div>`).join('');
+    document.getElementById('pl-swatches').innerHTML = sw;
+    const why = activeCtx ? buildWhyLine(p, activeCtx) : '';
+    const outside = activeCtx ? buildOutsidePhrase(activeCtx) : '';
+    document.getElementById('pl-why').textContent = `${outside} ${why}`.trim();
+    const links = [];
+    if (p.wiki)    links.push(`<a href="${p.wiki}" target="_blank" rel="noopener">Wikipedia ↗</a>`);
+    if (p.wikiart) links.push(`<a href="${p.wikiart}" target="_blank" rel="noopener">WikiArt ↗</a>`);
+    const linksWrap = document.getElementById('pl-links-wrap');
+    if (links.length) {
+      document.getElementById('pl-links').innerHTML = links.join('');
+      linksWrap.style.display = '';
+    } else {
+      linksWrap.style.display = 'none';
+    }
+    document.getElementById('plaque-overlay').classList.add('open');
+  };
+  window.closePlaque = function(e) {
+    if (e && e.target !== document.getElementById('plaque-overlay')
+         && e.target?.id !== 'plaque-close'
+         && !e.target?.closest?.('#plaque-close')) return;
+    document.getElementById('plaque-overlay').classList.remove('open');
+  };
+
+  // ── City list ─────────────────────────────────────────────
+  function buildCityList(activeName) {
+    const list = document.getElementById('city-list');
+    if (!list) return;
+    const now = new Date();
+    const unit = getUnit(activeCtx);
+    const fmt24 = tz => {
+      try {
+        return new Intl.DateTimeFormat('en-US', {
+          timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false,
+        }).format(now);
+      } catch(_) { return '00:00'; }
+    };
+    const enriched = CITIES.map(c => {
+      const t24 = fmt24(c.tz);
+      const [h, m] = t24.split(':').map(n => parseInt(n, 10));
+      const sortKey = (isNaN(h) ? 0 : h) * 60 + (isNaN(m) ? 0 : m);
+      return { ...c, localTime: formatCityTime(c.tz, unit, now), sortKey };
+    }).sort((a, b) => a.sortKey - b.sortKey);
+    list.innerHTML = '';
+    for (const c of enriched) {
+      const li = document.createElement('li');
+      if (c.name === activeName) li.classList.add('active');
+      li.innerHTML = `<span class="ct-name">${escapeHtml(c.name)}</span><span class="ct-time">${escapeHtml(c.localTime)}</span>`;
+      li.onclick = () => switchCity(c);
+      list.appendChild(li);
+    }
+  }
+  setInterval(() => { buildCityList(activeCtx?.locationName); }, 60000);
+
+  async function switchCity(city) {
+    showLoader(true);
+    try {
+      const ctx = await fetchConditions(city.lat, city.lon, city.name);
+      ctx.countryCode = (city.cc || city.country_code || '').toUpperCase() || null;
+      try {
+        localStorage.setItem('rothko-last-loc', JSON.stringify({
+          lat: ctx.lat, lon: ctx.lon, name: ctx.locationName, countryCode: ctx.countryCode,
+        }));
+      } catch(_) {}
+      updatePlacard(ctx);
+      buildCityList(ctx.locationName);
+      refreshRanked(ctx);
+      renderPainting(rankedCache[0], ctx);
+    } catch(_) {
+      showLoader(false);
+      showToast("Couldn't load weather for that city");
+    }
+  }
+
+  // ── City search ───────────────────────────────────────────
+  const cityInput    = document.getElementById('city-input');
+  const cityDropdown = document.getElementById('city-dropdown');
+  let citySearchTimer = null;
+
+  cityInput.addEventListener('input', () => {
+    const q = cityInput.value.trim();
+    clearTimeout(citySearchTimer);
+    if (q.length < 2) { hideCityDropdown(); return; }
+    citySearchTimer = setTimeout(() => searchCities(q), 220);
+  });
+  cityInput.addEventListener('focus', () => {
+    const q = cityInput.value.trim();
+    if (q.length >= 2) searchCities(q);
+  });
+  document.addEventListener('click', e => {
+    if (!cityInput.parentElement.contains(e.target)) hideCityDropdown();
+  });
+  cityInput.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { hideCityDropdown(); cityInput.blur(); }
+  });
+
+  async function searchCities(q) {
+    try {
+      const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=en&format=json`;
+      const data = await fetch(url).then(r => r.json());
+      showCityDropdown(data.results || []);
+    } catch(_) {}
+  }
+  function showCityDropdown(results) {
+    if (!results.length) { hideCityDropdown(); return; }
+    cityDropdown.innerHTML = '';
+    for (const r of results) {
+      const li = document.createElement('li');
+      const sub = [r.admin1, r.country].filter(Boolean).join(', ');
+      li.innerHTML = `<div>${escapeHtml(r.name)}</div><div class="drop-sub">${escapeHtml(sub)}</div>`;
+      li.addEventListener('mousedown', e => {
+        e.preventDefault();
+        cityInput.value = '';
+        hideCityDropdown();
+        switchCity({ name: r.name, lat: r.latitude, lon: r.longitude, cc: (r.country_code || '').toUpperCase() });
+      });
+      cityDropdown.appendChild(li);
+    }
+    cityDropdown.classList.add('open');
+  }
+  function hideCityDropdown() { cityDropdown.classList.remove('open'); }
+
+  // ── Use my location ───────────────────────────────────────
+  window.requestLocation = async function() {
+    if (!navigator.geolocation) return;
+    showLoader(true);
+    try {
+      const pos = await new Promise((res, rej) => {
+        navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000, maximumAge: 60000 });
+      });
+      const { latitude: lat, longitude: lon } = pos.coords;
+      const info = await fetchCityInfo(lat, lon);
+      const ctx = await fetchConditions(lat, lon, info.name);
+      ctx.countryCode = info.countryCode;
+      try {
+        localStorage.setItem('rothko-last-loc', JSON.stringify({
+          lat: ctx.lat, lon: ctx.lon, name: ctx.locationName, countryCode: ctx.countryCode,
+        }));
+      } catch(_) {}
+      updatePlacard(ctx);
+      buildCityList(ctx.locationName);
+      refreshRanked(ctx);
+      renderPainting(rankedCache[0], ctx);
+    } catch(_) {
+      showLoader(false);
+      showToast("Couldn't access your location");
+    }
+  };
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const ov = document.getElementById('plaque-overlay');
+      if (ov.classList.contains('open')) { closePlaque({ target: ov }); return; }
+    }
+    if (e.key === 'ArrowRight') { findAnother(); }
+    if (e.key === 'ArrowLeft')  { walkRanked(-1); }
+  });
+
+  // ── Init ──────────────────────────────────────────────────
+  async function init() {
+    if (!paintings.length) { console.warn('No Rothkos in dataset'); return; }
+
+    document.body.classList.add('app-ready');
+    showLoader(true);
+
+    let ctx = null;
+    let cached = null;
+    try { cached = JSON.parse(localStorage.getItem('rothko-last-loc') || 'null'); } catch(_) {}
+
+    try {
+      const pos = await new Promise((res, rej) => {
+        if (!navigator.geolocation) return rej(new Error('no geolocation'));
+        let done = false;
+        const timer = setTimeout(() => { if (!done) { done = true; rej(new Error('timeout')); } }, 5000);
+        navigator.geolocation.getCurrentPosition(
+          p => { if (!done) { done = true; clearTimeout(timer); res(p); } },
+          e => { if (!done) { done = true; clearTimeout(timer); rej(e); } },
+          { timeout: 4500, maximumAge: 10 * 60000 }
+        );
+      });
+      const { latitude: lat, longitude: lon } = pos.coords;
+      const info = await fetchCityInfo(lat, lon);
+      ctx = await fetchConditions(lat, lon, info.name);
+      if (ctx) ctx.countryCode = info.countryCode;
+    } catch(_) {
+      if (cached && typeof cached.lat === 'number' && typeof cached.lon === 'number') {
+        try {
+          ctx = await fetchConditions(cached.lat, cached.lon, cached.name || 'Your location');
+          if (ctx) ctx.countryCode = cached.countryCode || null;
+        } catch(_) {}
+      }
+      if (!ctx) {
+        try {
+          ctx = await fetchConditions(40.71, -74.00, 'New York');
+          if (ctx) ctx.countryCode = 'US';
+        } catch(_) {}
+      }
+    }
+
+    if (ctx && ctx.lat != null) {
+      try {
+        localStorage.setItem('rothko-last-loc', JSON.stringify({
+          lat: ctx.lat, lon: ctx.lon, name: ctx.locationName,
+          countryCode: ctx.countryCode || null,
+        }));
+      } catch(_) {}
+    }
+
+    if (!ctx) {
+      ctx = synthesizeClockOnlyCtx(cached);
+      showToast("Couldn't load weather — painting may not match the hour");
+    }
+
+    updatePlacard(ctx);
+    buildCityList(ctx.locationName);
+    refreshRanked(ctx);
+    renderPainting(rankedCache[0], ctx);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
