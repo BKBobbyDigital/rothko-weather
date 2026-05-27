@@ -33,24 +33,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,200;0,300;0,400;0,500;0,600;1,300;1,400;1,500&display=swap" rel="stylesheet">
   <style>
-    @font-face {
-      font-family: 'Edict Display';
-      src: url('fonts/EdictDisplayTrial-Light.otf') format('opentype');
-      font-weight: 300; font-style: normal; font-display: swap;
-    }
-    @font-face {
-      font-family: 'Edict Display';
-      src: url('fonts/EdictDisplayTrial-Regular.otf') format('opentype');
-      font-weight: 400; font-style: normal; font-display: swap;
-    }
-    @font-face {
-      font-family: 'Edict Display';
-      src: url('fonts/EdictDisplayTrial-RegularItalic.otf') format('opentype');
-      font-weight: 400; font-style: italic; font-display: swap;
-    }
-
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -132,12 +116,11 @@
       margin-bottom: 0.18rem;
     }
     #wordmark .wm-title {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-style: italic;
-      font-weight: 400;
-      font-size: 1.05rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 0.92rem;
       color: var(--ink-soft);
-      letter-spacing: 0.01em;
+      letter-spacing: -0.01em;
     }
 
     /* ── Stage ────────────────────────────────────────────── */
@@ -244,11 +227,11 @@
       margin-bottom: 0.55rem;
     }
     .lb-artist {
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 500;
-      font-size: 1.05rem;
+      font-size: 0.98rem;
       color: var(--ink);
-      letter-spacing: 0.005em;
+      letter-spacing: -0.01em;
       margin-bottom: 0.05rem;
     }
     .lb-dates {
@@ -264,13 +247,14 @@
       margin: 0.45rem 0 0.7rem;
     }
     .lb-title {
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: 'Inter', sans-serif;
       font-style: italic;
       font-weight: 400;
-      font-size: 1.3rem;
-      line-height: 1.2;
+      font-size: 1.18rem;
+      line-height: 1.25;
       color: var(--ink);
-      margin-bottom: 0.15rem;
+      letter-spacing: -0.015em;
+      margin-bottom: 0.2rem;
     }
     .lb-year {
       font-family: 'Inter', sans-serif;
@@ -282,11 +266,13 @@
       margin-top: 0.85rem;
       padding-top: 0.7rem;
       border-top: 1px solid var(--rule-soft);
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: 'Inter', sans-serif;
       font-style: italic;
-      font-size: 0.86rem;
-      line-height: 1.5;
+      font-weight: 300;
+      font-size: 0.78rem;
+      line-height: 1.55;
       color: var(--ink-soft);
+      letter-spacing: -0.005em;
     }
     /* Actions footer — two text-button rows at the bottom of the label.
        Left: Another Rothko. Right: Read the plaque (toggles expanded). */
@@ -362,12 +348,14 @@
       border: 1px solid rgba(40,28,10,0.25);
     }
     .lb-prose {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 0.92rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      font-size: 0.82rem;
       color: var(--ink-soft);
-      line-height: 1.55;
+      line-height: 1.6;
+      letter-spacing: -0.005em;
     }
-    .lb-prose + .lb-prose { margin-top: 0.55rem; }
+    .lb-prose + .lb-prose { margin-top: 0.65rem; }
     .lb-links a {
       display: inline-block;
       margin-right: 0.9rem;
@@ -421,12 +409,13 @@
       margin-bottom: 0.45rem;
     }
     .pc-loc {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1.0rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: 0.9rem;
       color: var(--ink);
-      letter-spacing: 0.005em;
+      letter-spacing: -0.01em;
       line-height: 1.2;
-      margin-bottom: 0.85rem;
+      margin-bottom: 0.9rem;
     }
     .pc-rule { height: 1px; background: var(--rule-soft); margin: 0.55rem 0; }
 
@@ -443,15 +432,17 @@
       color: var(--ink-faint);
     }
     .pc-line .pc-val {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 0.92rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      font-size: 0.8rem;
       color: var(--ink-soft);
-      letter-spacing: 0.005em;
+      letter-spacing: -0.005em;
       text-align: right;
       font-feature-settings: "tnum" 1;
     }
     .pc-line .pc-val em {
       font-style: italic;
+      font-weight: 400;
       color: var(--ink);
     }
 
@@ -489,10 +480,12 @@
       border: 1px solid rgba(40,28,10,0.25);
     }
     .pc-mood-text {
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: 'Inter', sans-serif;
       font-style: italic;
-      font-size: 0.82rem;
+      font-weight: 400;
+      font-size: 0.76rem;
       color: var(--ink-soft);
+      letter-spacing: -0.005em;
     }
 
     /* ── Visit-elsewhere card (left column, under placard) ──── */
@@ -525,19 +518,21 @@
     .city-search-wrap { position: relative; }
     #city-input {
       width: 100%;
-      padding: 0.42rem 0.55rem;
+      padding: 0.45rem 0.55rem;
       background: rgba(255, 250, 235, 0.6);
       border: 1px solid var(--rule);
       color: var(--ink);
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 0.92rem;
-      letter-spacing: 0.005em;
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      font-size: 0.82rem;
+      letter-spacing: -0.005em;
       outline: none;
       transition: border-color 0.18s, background 0.18s;
     }
     #city-input::placeholder {
       color: var(--ink-faint);
       font-style: italic;
+      font-weight: 300;
     }
     #city-input:focus {
       border-color: var(--ink-soft);
@@ -556,13 +551,15 @@
     }
     #city-dropdown.open { display: block; }
     #city-dropdown li {
-      padding: 0.45rem 0.65rem;
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 0.88rem;
+      padding: 0.5rem 0.65rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      font-size: 0.78rem;
       color: var(--ink-soft);
       cursor: pointer;
       transition: background 0.15s;
       border-bottom: 1px solid var(--rule-soft);
+      letter-spacing: -0.005em;
     }
     #city-dropdown li:last-child { border-bottom: none; }
     #city-dropdown li:hover { background: rgba(180,150,90,0.12); }
@@ -621,9 +618,11 @@
     .city-list li:hover { background: rgba(180,150,90,0.10); }
     .city-list li.active { background: rgba(180,150,90,0.18); }
     .city-list .ct-name {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 0.85rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      font-size: 0.78rem;
       color: var(--ink-soft);
+      letter-spacing: -0.005em;
     }
     .city-list li.active .ct-name { color: var(--ink); }
     .city-list .ct-time {
