@@ -703,8 +703,8 @@
         </div>
         <div class="lb-section">
           <div class="lb-section-label">About the painter</div>
-          <p class="lb-prose">Rothko stopped painting things in the late 1940s. What he kept was light, color, and a feeling the work was supposed to give the person standing in front of it — joy, ecstasy, doom, tragedy. He arranged two or three soft-edged rectangles on a field and worked the surface until the colors seemed to hold their own weather inside the canvas.</p>
-          <p class="lb-prose">He asked galleries to hang the paintings low, dim the lights, and let people sit with them. The painting was supposed to do something — not just be looked at.</p>
+          <p class="lb-prose">Rothko stopped painting things in the late 1940s. What he kept was light, color, and a feeling the work was supposed to give the person standing in front of it: joy, ecstasy, doom, tragedy. He arranged two or three soft-edged rectangles on a field and worked the surface until the colors seemed to hold their own weather inside the canvas.</p>
+          <p class="lb-prose">He asked galleries to hang the paintings low, dim the lights, and let people sit with them. The painting was supposed to do something. Not just be looked at.</p>
         </div>
         <div class="lb-section" id="lb-links-wrap" style="display:none;">
           <div class="lb-section-label">Read more</div>
@@ -1189,7 +1189,7 @@
   };
   // Two openers per mood. The phrasing leans Rothko — color as event, the
   // painting as something that does work in the room, gravity over comfort.
-  // No terminal punctuation; buildWhyLine appends "— <connector>."
+  // No terminal punctuation; buildWhyLine appends ". <Connector>."
   const MOOD_OPENER = {
     stormy:        ['Thunder under the day','A weather to take seriously'],
     somber:        ['The day with its lights down','A gravity to the hour'],
@@ -1212,25 +1212,51 @@
   };
   const pick1 = arr => arr[Math.floor(Math.random() * arr.length)];
 
+  // Each branch returns multiple phrasings; one picked at random so the same
+  // shape doesn't repeat across paintings in a session.
+  function buildConnector(p, m) {
+    const sharedPalette = (p.palette || []).filter(t => m.palette.has(t));
+    const sharedMood    = (p.mood    || []).filter(t => m.mood.has(t));
+    const color = sharedPalette[0] ? sharedPalette[0].replace('_', ' ') : null;
+    const mood  = sharedMood[0] || null;
+
+    if (color && mood) return pick1([
+      `the ${color} field carrying the ${mood} of the hour`,
+      `${color} doing the same work the weather is doing`,
+      `painting and day set to the same ${mood} pitch`,
+      `the ${color} holding what the room is doing`,
+    ]);
+    if (mood) return pick1([
+      `the canvas reading in the same ${mood} register`,
+      `the painting set to the same ${mood} key`,
+      `a ${mood} that the wall and the weather share`,
+    ]);
+    if (color) return pick1([
+      `${color} the right key for the room`,
+      `${color} the color the hour wants`,
+      `${color} as the answer`,
+    ]);
+    if (p.brightness === m.brightness) return pick1([
+      `light inside the painting, light outside it`,
+      `the canvas at the same brightness as the room`,
+      `painting and weather in the same kind of light`,
+    ]);
+    return pick1([
+      `a color for the moment to live inside`,
+      `a register the room can sit with`,
+      `a wall worth pulling up a bench for`,
+    ]);
+  }
+
   function buildWhyLine(p, ctx) {
     const m = moodOf(ctx);
     const phrase = moodPhrase(m);
     const opener = pick1(MOOD_OPENER[phrase] || ['Right now']);
-    const sharedPalette = (p.palette || []).filter(t => m.palette.has(t));
-    const sharedMood    = (p.mood    || []).filter(t => m.mood.has(t));
-    let connector;
-    if (sharedMood.length && sharedPalette.length) {
-      connector = `the ${sharedPalette[0].replace('_',' ')} field carrying the ${sharedMood[0]} of the hour`;
-    } else if (sharedMood.length) {
-      connector = `the canvas reading in the same ${sharedMood[0]} register`;
-    } else if (sharedPalette.length) {
-      connector = `${sharedPalette[0].replace('_',' ')} the right key for the room`;
-    } else if (p.brightness === m.brightness) {
-      connector = `painting and weather sitting in the same light`;
-    } else {
-      connector = `a color for the moment to live inside`;
-    }
-    return `${opener} — ${connector}.`;
+    const connector = buildConnector(p, m);
+    // Capitalize the connector so the two fragments read as two beats
+    // joined by a period (no em dash).
+    const cap = connector.charAt(0).toUpperCase() + connector.slice(1);
+    return `${opener}. ${cap}.`;
   }
   // ── Rendering ─────────────────────────────────────────────
   function updatePlacard(ctx) {
@@ -1533,7 +1559,7 @@
 
     if (!ctx) {
       ctx = synthesizeClockOnlyCtx(cached);
-      showToast("Couldn't load weather — painting may not match the hour");
+      showToast("Couldn't load weather. Painting may not match the hour.");
     }
 
     updatePlacard(ctx);
