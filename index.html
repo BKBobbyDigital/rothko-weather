@@ -929,23 +929,29 @@
     return p.image.replace(/^\//, '');
   }
 
+  // Twenty cities, ordered west-to-east in source for readability; the
+  // runtime sorts the "Open hours, elsewhere" list by local time each
+  // render so the order on screen is always by clock, not by code.
   const CITIES = [
+    { name: 'Honolulu',    lat: 21.31,  lon: -157.86, tz: 'Pacific/Honolulu',      cc: 'US' },
+    { name: 'LA',          lat: 34.05,  lon: -118.24, tz: 'America/Los_Angeles',   cc: 'US' },
+    { name: 'Mexico City', lat: 19.43,  lon: -99.13,  tz: 'America/Mexico_City',   cc: 'MX' },
     { name: 'New York',    lat: 40.71,  lon: -74.00,  tz: 'America/New_York',      cc: 'US' },
+    { name: 'São Paulo',   lat: -23.55, lon: -46.63,  tz: 'America/Sao_Paulo',     cc: 'BR' },
+    { name: 'Reykjavík',   lat: 64.13,  lon: -21.94,  tz: 'Atlantic/Reykjavik',    cc: 'IS' },
     { name: 'London',      lat: 51.51,  lon: -0.13,   tz: 'Europe/London',         cc: 'GB' },
     { name: 'Paris',       lat: 48.85,  lon: 2.35,    tz: 'Europe/Paris',          cc: 'FR' },
     { name: 'Berlin',      lat: 52.52,  lon: 13.41,   tz: 'Europe/Berlin',         cc: 'DE' },
-    { name: 'Helsinki',    lat: 60.17,  lon: 24.94,   tz: 'Europe/Helsinki',       cc: 'FI' },
-    { name: 'Reykjavík',   lat: 64.13,  lon: -21.94,  tz: 'Atlantic/Reykjavik',    cc: 'IS' },
-    { name: 'Tokyo',       lat: 35.68,  lon: 139.69,  tz: 'Asia/Tokyo',            cc: 'JP' },
-    { name: 'Singapore',   lat: 1.35,   lon: 103.82,  tz: 'Asia/Singapore',        cc: 'SG' },
-    { name: 'Mumbai',      lat: 19.08,  lon: 72.88,   tz: 'Asia/Kolkata',          cc: 'IN' },
-    { name: 'Dubai',       lat: 25.20,  lon: 55.27,   tz: 'Asia/Dubai',            cc: 'AE' },
-    { name: 'Cairo',       lat: 30.04,  lon: 31.24,   tz: 'Africa/Cairo',          cc: 'EG' },
     { name: 'Tunis',       lat: 36.81,  lon: 10.18,   tz: 'Africa/Tunis',          cc: 'TN' },
+    { name: 'Lagos',       lat: 6.52,   lon: 3.38,    tz: 'Africa/Lagos',          cc: 'NG' },
     { name: 'Cape Town',   lat: -33.92, lon: 18.42,   tz: 'Africa/Johannesburg',   cc: 'ZA' },
-    { name: 'São Paulo',   lat: -23.55, lon: -46.63,  tz: 'America/Sao_Paulo',     cc: 'BR' },
-    { name: 'Mexico City', lat: 19.43,  lon: -99.13,  tz: 'America/Mexico_City',   cc: 'MX' },
-    { name: 'LA',          lat: 34.05,  lon: -118.24, tz: 'America/Los_Angeles',   cc: 'US' },
+    { name: 'Cairo',       lat: 30.04,  lon: 31.24,   tz: 'Africa/Cairo',          cc: 'EG' },
+    { name: 'Istanbul',    lat: 41.01,  lon: 28.98,   tz: 'Europe/Istanbul',       cc: 'TR' },
+    { name: 'Dubai',       lat: 25.20,  lon: 55.27,   tz: 'Asia/Dubai',            cc: 'AE' },
+    { name: 'Mumbai',      lat: 19.08,  lon: 72.88,   tz: 'Asia/Kolkata',          cc: 'IN' },
+    { name: 'Singapore',   lat: 1.35,   lon: 103.82,  tz: 'Asia/Singapore',        cc: 'SG' },
+    { name: 'Seoul',       lat: 37.57,  lon: 126.98,  tz: 'Asia/Seoul',            cc: 'KR' },
+    { name: 'Tokyo',       lat: 35.68,  lon: 139.69,  tz: 'Asia/Tokyo',            cc: 'JP' },
     { name: 'Sydney',      lat: -33.87, lon: 151.21,  tz: 'Australia/Sydney',      cc: 'AU' },
   ];
 
