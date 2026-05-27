@@ -27,18 +27,18 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      /* Gallery wall — warm museum cream, faintly aged. */
-      --wall: #ece5d3;
-      --wall-shade: #d8cfb8;
-      --wall-deep:  #b8ab8c;
+      /* Gallery wall — near-white museum wall, the faintest warm cast. */
+      --wall: #f6f4ef;
+      --wall-shade: #ebe7dd;
+      --wall-deep:  #d6cfbf;
       --ink:        #1c1a17;
       --ink-soft:   #3d3934;
       --ink-mute:   #6f6a60;
-      --ink-faint:  #9a9388;
-      --rule:       #b8ad95;
-      --rule-soft:  #cdc3a8;
-      --label-card: #f4eedb;
-      --label-edge: #c4b896;
+      --ink-faint:  #a5a098;
+      --rule:       #c8c2b3;
+      --rule-soft:  #ddd6c6;
+      --label-card: #fbf8ef;
+      --label-edge: #d0c8b4;
       --highlight:  #ffffff;
     }
 
@@ -176,10 +176,10 @@
     /* ── Museum label below the painting ──────────────────── */
     #label {
       position: relative;
-      width: min(420px, 86vw);
+      width: min(490px, 88vw);
       background: var(--label-card);
       border: 1px solid var(--label-edge);
-      padding: 1.15rem 1.4rem 1.1rem;
+      padding: 1.4rem 1.7rem 1.35rem;
       box-shadow:
         0 1px 0 rgba(255,255,255,0.55) inset,
         0 2px 4px rgba(80,60,30,0.08),
@@ -276,10 +276,10 @@
       position: fixed;
       top: 1.4rem;
       left: 1.4rem;
-      width: 235px;
+      width: 290px;
       background: var(--label-card);
       border: 1px solid var(--label-edge);
-      padding: 1rem 1.05rem 0.95rem;
+      padding: 1.25rem 1.35rem 1.2rem;
       box-shadow:
         0 1px 0 rgba(255,255,255,0.5) inset,
         0 6px 14px -6px rgba(80,60,30,0.18);
@@ -378,10 +378,10 @@
       position: fixed;
       top: 1.4rem;
       right: 1.4rem;
-      width: 235px;
+      width: 290px;
       background: var(--label-card);
       border: 1px solid var(--label-edge);
-      padding: 1rem 1.05rem 0.95rem;
+      padding: 1.25rem 1.35rem 1.2rem;
       box-shadow:
         0 1px 0 rgba(255,255,255,0.5) inset,
         0 6px 14px -6px rgba(80,60,30,0.18);
@@ -862,6 +862,7 @@
     { name: 'Mumbai',      lat: 19.08,  lon: 72.88,   tz: 'Asia/Kolkata',          cc: 'IN' },
     { name: 'Dubai',       lat: 25.20,  lon: 55.27,   tz: 'Asia/Dubai',            cc: 'AE' },
     { name: 'Cairo',       lat: 30.04,  lon: 31.24,   tz: 'Africa/Cairo',          cc: 'EG' },
+    { name: 'Tunis',       lat: 36.81,  lon: 10.18,   tz: 'Africa/Tunis',          cc: 'TN' },
     { name: 'Cape Town',   lat: -33.92, lon: 18.42,   tz: 'Africa/Johannesburg',   cc: 'ZA' },
     { name: 'São Paulo',   lat: -23.55, lon: -46.63,  tz: 'America/Sao_Paulo',     cc: 'BR' },
     { name: 'Mexico City', lat: 19.43,  lon: -99.13,  tz: 'America/Mexico_City',   cc: 'MX' },
