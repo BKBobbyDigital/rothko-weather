@@ -660,6 +660,72 @@
     }
     #toast .toast-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+    /* ── Focus mode toggle ───────────────────────────────── */
+    /* A small printed-card button bottom-right. In focus mode the
+       button fades to near-invisible until hovered, so the painting
+       can carry the room without competing chrome. */
+    #focus-toggle {
+      position: fixed;
+      bottom: 1.2rem;
+      right: 1.2rem;
+      z-index: 50;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--label-card);
+      border: 1px solid var(--label-edge);
+      color: var(--ink-mute);
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.6s ease 0.3s, background 0.25s ease, color 0.25s ease,
+                  border-color 0.25s ease, transform 0.25s ease;
+    }
+    body.app-ready #focus-toggle { opacity: 1; }
+    #focus-toggle:hover {
+      background: rgba(180,150,90,0.12);
+      color: var(--ink);
+      border-color: var(--ink-soft);
+    }
+    .focus-icon { width: 14px; height: 14px; }
+    .focus-icon-exit { display: none; }
+    body.focus-mode .focus-icon-enter { display: none; }
+    body.focus-mode .focus-icon-exit  { display: block; }
+
+    /* Focus mode — fade chrome out, free up the wall. */
+    body.focus-mode #wordmark,
+    body.focus-mode #left-col,
+    body.focus-mode #right-col {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+    body.focus-mode #focus-toggle {
+      opacity: 0.2;
+      background: transparent;
+      border-color: transparent;
+      color: var(--ink-faint);
+    }
+    body.focus-mode #focus-toggle:hover {
+      opacity: 0.95;
+      background: var(--label-card);
+      border-color: var(--label-edge);
+      color: var(--ink);
+    }
+    /* With the columns gone, the painting reclaims the horizontal space
+       and grows about a third larger. */
+    body.focus-mode #stage {
+      padding-left: clamp(1.5rem, 4vw, 3rem);
+      padding-right: clamp(1.5rem, 4vw, 3rem);
+      transition: padding 0.6s ease;
+    }
+    body.focus-mode #painting-frame {
+      max-width: min(86vw, 1100px);
+      max-height: 88vh;
+    }
+    body.focus-mode #painting { max-height: 88vh; }
+
     /* ── Mobile ──────────────────────────────────────────── */
     /* Single-column reflow: painting first, then label beside it,
        then conditions and visit controls below. The fixed left and
@@ -820,6 +886,17 @@
 <div id="toast" onclick="hideToast()" role="status" aria-live="polite">
   <span class="toast-text">—</span>
 </div>
+
+<!-- Focus-mode toggle: hides chrome (wordmark, placards, label) so the
+     painting fills the wall. Click again or press Escape to return. -->
+<button id="focus-toggle" onclick="toggleFocus()" title="Hide labels" aria-label="Focus on the painting">
+  <svg class="focus-icon focus-icon-enter" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M1 5V1h4M9 1h4v4M13 9v4h-4M5 13H1V9"/>
+  </svg>
+  <svg class="focus-icon focus-icon-exit" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M5 1v4H1M13 5H9V1M9 13V9h4M1 9h4v4"/>
+  </svg>
+</button>
 
 <script src="paintings.js"></script>
 <script>
@@ -1402,6 +1479,17 @@
     walkRanked(+1);
   };
 
+  // Focus mode — hides the wordmark, left column, and museum label so
+  // the painting fills the wall. State lives on body.focus-mode.
+  window.toggleFocus = function() {
+    const on = document.body.classList.toggle('focus-mode');
+    const btn = document.getElementById('focus-toggle');
+    if (btn) {
+      btn.title = on ? 'Show labels' : 'Hide labels';
+      btn.setAttribute('aria-label', on ? 'Show the labels' : 'Focus on the painting');
+    }
+  };
+
   // ── Plaque (in-place, expands the wall label) ─────────────
   function fillPlaqueExpand(p) {
     const sw = (p.palette || []).slice(0, 5)
@@ -1565,6 +1653,11 @@
     if (e.key === 'Escape') {
       const lbl = document.getElementById('label');
       if (lbl.classList.contains('expanded')) { setPlaqueOpen(false); return; }
+      if (document.body.classList.contains('focus-mode')) { toggleFocus(); return; }
+    }
+    if (e.key === 'f' && !e.metaKey && !e.ctrlKey && !e.altKey
+        && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
+      toggleFocus(); return;
     }
     if (e.key === 'ArrowRight') { findAnother(); }
     if (e.key === 'ArrowLeft')  { walkRanked(-1); }
