@@ -1181,31 +1181,34 @@
   // ── Phrasing ──────────────────────────────────────────────
   const TIME_PHRASE = {
     dawn: 'first light', morning: 'morning', noon: 'midday',
-    afternoon: 'afternoon', dusk: 'sundown', evening: 'evening', night: 'night',
+    afternoon: 'the afternoon', dusk: 'sundown', evening: 'evening', night: 'after dark',
   };
   const WEATHER_PHRASE = {
-    clear: 'clear sky', partly_cloudy: 'broken cloud', overcast: 'low grey ceiling',
-    fog: 'fog', rain: 'rain', snow: 'snow', storm: 'storm',
+    clear: 'open sky', partly_cloudy: 'cloud breaking up', overcast: 'a low grey ceiling',
+    fog: 'fog', rain: 'rain coming down', snow: 'snow falling', storm: 'a storm overhead',
   };
+  // Two openers per mood. The phrasing leans Rothko — color as event, the
+  // painting as something that does work in the room, gravity over comfort.
+  // No terminal punctuation; buildWhyLine appends "— <connector>."
   const MOOD_OPENER = {
-    stormy:        ['Heavy weather','A storm outside'],
-    somber:        ['Somber out','A heavy quiet outside'],
-    contemplative: ['A contemplative hour','The kind of hour you sit with'],
-    melancholy:    ['A quiet melancholy','The day going inward'],
-    tender:        ['A tender light','The light gone soft'],
-    glowing:       ['A glowing hour','The air going gold'],
-    luminous:      ['Soft luminous light','First light arriving'],
-    radiant:       ['Bright open weather','Full sun overhead'],
-    vivid:         ['Vivid open weather','The day at full saturation'],
-    quiet:         ['A quiet hour','A still moment'],
-    hushed:        ['The world gone hushed','Air thick and still'],
-    muted:         ['Muted weather','Everything turned grey'],
-    heavy:         ['A heavy hour','The day with weight'],
-    warm:          ['Warm light','Warm air'],
-    soft:          ['Soft light','The light gone soft'],
-    still:         ['Air still','Nothing moving'],
-    restless:      ['Restless weather','Wind coming up'],
-    open:          ['Open weather','Wide sky'],
+    stormy:        ['Thunder under the day','A weather to take seriously'],
+    somber:        ['The day with its lights down','A gravity to the hour'],
+    contemplative: ['An hour for standing still','The room gone interior'],
+    melancholy:    ['The day turned inward','A quietness with weight'],
+    tender:        ['The light come down soft','An hour with no hard edges'],
+    glowing:       ['The air at temperature','A glow that wants to be sat with'],
+    luminous:      ['The day arriving slowly','First light, still cool to the touch'],
+    radiant:       ['Full sun, full saturation','The day at peak voltage'],
+    vivid:         ['Color cranked all the way up','A day with no apology'],
+    quiet:         ['An hour for sitting','Nothing the room is asking of you'],
+    hushed:        ['The air gone still','The room holding its breath'],
+    muted:         ['The world turned down','A grey that means it'],
+    heavy:         ['The day with weight on it','An hour that doesn’t move quickly'],
+    warm:          ['The air with warmth in it','A hand-temperature day'],
+    soft:          ['The light gone gentle','Edges given up for the day'],
+    still:         ['No wind, no event','An hour with no errand'],
+    restless:      ['Air with motion in it','Something the day is working out'],
+    open:          ['A sky wide open','No ceiling on the day'],
   };
   const pick1 = arr => arr[Math.floor(Math.random() * arr.length)];
 
@@ -1217,25 +1220,18 @@
     const sharedMood    = (p.mood    || []).filter(t => m.mood.has(t));
     let connector;
     if (sharedMood.length && sharedPalette.length) {
-      connector = `the ${sharedPalette[0].replace('_',' ')} field carries the same ${sharedMood[0]} hour`;
+      connector = `the ${sharedPalette[0].replace('_',' ')} field carrying the ${sharedMood[0]} of the hour`;
     } else if (sharedMood.length) {
-      connector = `the painting holds the same ${sharedMood[0]} register`;
+      connector = `the canvas reading in the same ${sharedMood[0]} register`;
     } else if (sharedPalette.length) {
-      connector = `${sharedPalette[0].replace('_',' ')} the right note for the hour`;
+      connector = `${sharedPalette[0].replace('_',' ')} the right key for the room`;
     } else if (p.brightness === m.brightness) {
-      connector = `the painting sits in the same kind of light`;
+      connector = `painting and weather sitting in the same light`;
     } else {
-      connector = `a fitting color for it`;
+      connector = `a color for the moment to live inside`;
     }
     return `${opener} — ${connector}.`;
   }
-  function buildOutsidePhrase(ctx) {
-    const city = ctx.locationName || 'where you are';
-    const w = WEATHER_PHRASE[ctx.weather[0]] || ctx.weather[0];
-    const t = TIME_PHRASE[ctx.time] || ctx.time;
-    return `${ctx.temp}° in ${city}, ${w}, ${t}.`;
-  }
-
   // ── Rendering ─────────────────────────────────────────────
   function updatePlacard(ctx) {
     const m = moodOf(ctx);
